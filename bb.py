@@ -8,6 +8,24 @@ screen = pygame.display.set_mode((width,height))
 clock = pygame.time.Clock()
 running = True
 
+def check_circle_box_collision(circle_x:int, circle_y:int, radius:int, box_x:int, box_y:int, box_w:int, box_h:int):
+    # Find the box edge coordinates
+    box_right = box_x + box_w
+    box_bottom = box_y + box_h
+
+    # Clamp the circle center coordinates to the box bounds
+    closest_x = max(box_x, min(circle_x, box_right))
+    closest_y = max(box_y, min(circle_y, box_bottom))
+
+    # Calculate distance from the closest point to the circle center
+    distance_x = circle_x - closest_x
+    distance_y = circle_y - closest_y
+    distance_squared = (distance_x ** 2) + (distance_y ** 2)
+
+    # Return True if the distance is less than the radius squared
+    return distance_squared < (radius ** 2)
+
+
 class Block:
     all:list[Block] = []
     def __init__(self):
@@ -41,9 +59,12 @@ class Ball:
         if self.check_under(): self.remove()
         if self.top_edge_collision(): self._vy = -self._vy
         if self.wall_edge_coll(): self._vx = -self._vx
+        if self.player_col(): self._vy = -self._vy
         self.draw()
     def is_active(self):
         return self._active
+    def player_col(self):
+        return check_circle_box_collision(self._x,self._y,self._r,player.get_dimention('x'),player.get_dimention('y'),player.get_dimention('w'),player.get_dimention('h'))
 class Level:
     levels = [
         [
@@ -87,7 +108,7 @@ class Level:
     def __init__(self):
         pass
 class Player:
-    def __init__(self,w:int = 40,h:int = 15,speed:int = 10):
+    def __init__(self,w:int = 60,h:int = 20,speed:int = 10):
         self._width = w
         self._height = h
         self._x:int = floor(width/2)
@@ -101,7 +122,18 @@ class Player:
         if not self._x +self._width >= width: self._x =self._x +self._speed
     def onframe(self):
         self.draw()
-Ball(60,60,0,-5)
+    def get_dimention(self,type:str) -> int:
+        match type:
+            case 'x':
+                return self._x
+            case 'y':
+                return self._y
+            case 'w':
+                return self._width
+            case 'h':return self._height
+            case _:
+                return 0
+Ball(60,60,5,-5)
 player = Player()
 while running: # game loop
 
