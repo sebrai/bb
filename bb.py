@@ -96,7 +96,7 @@ class Player:
     def left(self):
         if not self.x <= 0: self.x = self.x - self.speed
     def right(self):
-        pass
+        if not self.x +self.width >= width: self.x =self.x +self.speed
 Ball(60,60,20)
 player = Player()
 while running: # game loop
