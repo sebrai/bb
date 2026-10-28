@@ -42,6 +42,8 @@ class Ball:
         if self.top_edge_collision(): self._vy = -self._vy
         if self.wall_edge_coll(): self._vx = -self._vx
         self.draw()
+    def is_active(self):
+        return self._active
 class Level:
     levels = [
         [
@@ -92,22 +94,31 @@ class Player:
         self._y:int = floor(height*0.9)
         self._speed =speed
     def draw(self):
-        pass
+        pygame.draw.rect(screen,"white",pygame.Rect(self._x,self._y,self._width,self._height))
     def left(self):
         if not self._x <= 0: self._x = self._x - self._speed
     def right(self):
         if not self._x +self._width >= width: self._x =self._x +self._speed
-Ball(60,60,20)
+    def onframe(self):
+        self.draw()
+Ball(60,60,0,-5)
 player = Player()
 while running: # game loop
 
     for event in pygame.event.get(): # actions
         if event.type == pygame.QUIT:
             running = False
+
+    keys = pygame.key.get_pressed()
+
+    if keys[pygame.K_LEFT] or keys[pygame.K_a]:
+       player.left()
+    if keys[pygame.K_RIGHT] or keys[pygame.K_d]:
+       player.right()
     screen.fill('black')
-    for b in Ball.all:
+    for b in [ball for ball in Ball.all if ball.is_active()]:
         b.onframe()
-    
+    player.onframe()
 
     pygame.display.flip() # rendering happens last
     clock.tick(60) 
