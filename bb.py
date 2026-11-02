@@ -1,5 +1,6 @@
 import pygame
 from math import floor
+from random import randint
 # pygame setup
 pygame.init()
 height = 600
@@ -92,6 +93,9 @@ class Ball:
                 self._vx = -abs(self._vx)
             elif self._prev_x > px + pw:
                 self._vx = abs(self._vx)
+
+        # add speed based on player speed
+        self._vx = self._vx + player.get_dimention('s')*0.3*player.get_dimention('d')
 class Level:
     levels = [
         [
@@ -141,13 +145,17 @@ class Player:
         self._x:int = floor(width/2)
         self._y:int = player_start_height
         self._speed =speed
+        self._dir = 0
     def draw(self):
         pygame.draw.rect(screen,"white",pygame.Rect(self._x,self._y,self._width,self._height))
     def left(self):
+        self._dir = -1
         if not self._x <= 0: self._x = self._x - self._speed
     def right(self):
+        self._dir = 1
         if not self._x +self._width >= width: self._x =self._x +self._speed
     def onframe(self):
+        self._dir = 0
         self.draw()
     def get_dimention(self,type:str) -> int:
         match type:
@@ -158,6 +166,8 @@ class Player:
             case 'w':
                 return self._width
             case 'h':return self._height
+            case 's': return self._speed
+            case 'd': return self._dir
             case _:
                 return 0
 Ball(60,60,5,-5)
@@ -175,7 +185,7 @@ while running: # game loop
     if keys[pygame.K_RIGHT] or keys[pygame.K_d]:
        player.right()
     if keys[pygame.K_SPACE]:
-        Ball(50,50,10,1)
+        Ball(randint(1,width-1),randint(1,200),randint(-10,10),randint(-10,10))
     screen.fill('black')
     for b in [ball for ball in Ball.all if ball.is_active()]:
         b.onframe()
