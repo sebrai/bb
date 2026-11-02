@@ -148,6 +148,8 @@ while running: # game loop
        player.left()
     if keys[pygame.K_RIGHT] or keys[pygame.K_d]:
        player.right()
+    if keys[pygame.K_SPACE]:
+        Ball(50,50,10,1)
     screen.fill('black')
     for b in [ball for ball in Ball.all if ball.is_active()]:
         b.onframe()
