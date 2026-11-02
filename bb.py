@@ -128,7 +128,7 @@ class Ball:
 
             if not check_circle_box_collision(self._x, self._y, self._r,bx, by, bw, bh): # type: ignore
                 continue
-
+            bl.got_hit_by_ball()
             # Previous ball boundaries
             prev_left = self._prev_x - self._r
             prev_right = self._prev_x + self._r
