@@ -4,6 +4,7 @@ from math import floor
 pygame.init()
 height = 600
 width = 800
+player_start_height = floor(height*0.9)
 screen = pygame.display.set_mode((width,height))
 clock = pygame.time.Clock()
 running = True
@@ -40,10 +41,15 @@ class Ball:
         self._r = r
         self._color = color
         self._active = True
+        self._prev_x = x
+        self._prev_y = y
         Ball.all.append(self)
     def move(self):
-        self._x = self._x +self._vx
-        self._y = self._y +self._vy
+        self._prev_x = self._x
+        self._prev_y = self._y
+
+        self._x += self._vx
+        self._y += self._vy
     def draw(self):
         pygame.draw.circle(screen,self._color,(self._x,self._y),float(self._r))
     def remove(self):
@@ -60,12 +66,32 @@ class Ball:
         if self.top_edge_collision(): self._vy = -self._vy
         if self.wall_edge_coll(): self._vx = -self._vx
         if self.player_col():
-            pass
+           self.player_collision()
         self.draw()
     def is_active(self):
         return self._active
     def player_col(self):
-        return check_circle_box_collision(self._x,self._y,self._r,player.get_dimention('x'),player.get_dimention('y'),player.get_dimention('w'),player.get_dimention('h'))
+        return check_circle_box_collision(self._x,self._y,self._r,player.get_dimention('x'),player.get_dimention('y'),player.get_dimention('w'),player.get_dimention('h')) # type: ignore
+    
+    def player_collision(self):
+        if not self.player_col():
+            return
+
+        px = player.get_dimention('x')
+        py = player.get_dimention('y')
+        pw = player.get_dimention('w')
+
+        # Was the ball previously above the paddle?
+        if self._prev_y + self._r <= py:
+            self._vy = -abs(self._vy)
+            self._y = py - self._r
+
+        # Otherwise, it hit the side
+        else:
+            if self._prev_x < px:
+                self._vx = -abs(self._vx)
+            elif self._prev_x > px + pw:
+                self._vx = abs(self._vx)
 class Level:
     levels = [
         [
@@ -113,7 +139,7 @@ class Player:
         self._width = w
         self._height = h
         self._x:int = floor(width/2)
-        self._y:int = floor(height*0.9)
+        self._y:int = player_start_height
         self._speed =speed
     def draw(self):
         pygame.draw.rect(screen,"white",pygame.Rect(self._x,self._y,self._width,self._height))
