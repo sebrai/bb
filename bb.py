@@ -30,11 +30,32 @@ def check_circle_box_collision(circle_x:int, circle_y:int, radius:int, box_x:int
 
 class Block:
     all:list[Block] = []
-    def __init__(self):
-        pass
+    def __init__(self,x:int,y:int,w:int,h:int,color:str | tuple[int,int,int] = (120,120,120)):
+        self._x = x
+        self._y = y
+        self._width = w
+        self._height = h
+        self._active = True
+        self._color = color
+        Block.all.append(self)
+    def draw(self):
+        pygame.draw.rect(screen,self._color,pygame.Rect(self._x,self._y,self._width,self._height))
+    def onframe(self):
+        self.draw()
+    def got_hit_by_ball(self): # code checking goes in ball
+        self._active = False
+    def get_att(self,att:str):
+        match att:
+            case 'x':return self._x
+            case 'y': return self._y
+            case 'w': return self._width
+            case 'h': return self._height
+            case _: return 0
+    def is_active(self):
+        return self._active
 class Ball:
     all:list[Ball] = []
-    def __init__(self,x:int,y:int,vx:int = 0,vy:int = 0,r:int = 5,color: tuple[int,int,int] | str = (255,255,255)):
+    def __init__(self,x:int | float,y:int,vx:int = 0,vy:int = 0,r:int = 5,color: tuple[int,int,int] | str = (255,255,255)):
         self._x = x
         self._y = y
         self._vx = vx
@@ -68,6 +89,7 @@ class Ball:
         if self.wall_edge_coll(): self._vx = -self._vx
         if self.player_col():
            self.player_collision()
+        self.block_coll()
         self.draw()
     def is_active(self):
         return self._active
@@ -97,48 +119,82 @@ class Ball:
         transfer = 1.0
         # add speed based on player speed
         self._vx = self._vx + player.get_dimention('s')*transfer*player.get_dimention('d')
-class Level:
-    levels = [
-        [
-        [0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0],
-        [0,0,1,0,0,1,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0],
-        ],
-        [
-        [0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0],
-        ],
-        [
-        [0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0],
-        ],
+    def block_coll(self):
+        for bl in [block for block in Block.all if block.is_active()]:
+            bx = bl.get_att('x')
+            by = bl.get_att('y')
+            bw = bl.get_att('w')
+            bh = bl.get_att('h')
 
-    ]
-    def __init__(self):
-        pass
+            if not check_circle_box_collision(self._x, self._y, self._r,bx, by, bw, bh): # type: ignore
+                continue
+
+            # Previous ball boundaries
+            prev_left = self._prev_x - self._r
+            prev_right = self._prev_x + self._r
+            prev_top = self._prev_y - self._r
+            prev_bottom = self._prev_y + self._r
+
+            # Top collision
+            if prev_bottom <= by:
+                self._vy = -abs(self._vy)
+                self._y = by - self._r
+
+            # Bottom collision
+            elif prev_top >= by + bh:
+                self._vy = abs(self._vy)
+                self._y = by + bh + self._r
+
+            # Left collision
+            elif prev_right <= bx:
+                self._vx = -abs(self._vx)
+                self._x = bx - self._r
+
+            # Right collision
+            elif prev_left >= bx + bw:
+                self._vx = abs(self._vx)
+                self._x = bx + bw + self._r
+
+levels = [
+    [
+    [0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0],
+    [0,0,1,0,0,1,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0],
+    ],
+    [
+    [0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0],
+    ],
+    [
+    [0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0],
+    ],
+
+]
+
 class Player:
     def __init__(self,w:int = 60,h:int = 20,speed:int = 10):
         self._width = w
@@ -172,6 +228,7 @@ class Player:
             case _:
                 return 0
 Ball(60,60,5,-5)
+Block(100,100,20,20)
 player = Player()
 while running: # game loop
 
@@ -190,6 +247,8 @@ while running: # game loop
     screen.fill('black')
     for b in [ball for ball in Ball.all if ball.is_active()]:
         b.onframe()
+    for bl in [block for block in Block.all if block.is_active()]:
+        bl.onframe()
     player.onframe()
 
     pygame.display.flip() # rendering happens last
