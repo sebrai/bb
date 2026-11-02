@@ -86,6 +86,7 @@ class Ball:
         if self._prev_y + self._r <= py:
             self._vy = -abs(self._vy)
             self._y = py - self._r
+            transfer = 0.3
 
         # Otherwise, it hit the side
         else:
@@ -93,9 +94,9 @@ class Ball:
                 self._vx = -abs(self._vx)
             elif self._prev_x > px + pw:
                 self._vx = abs(self._vx)
-
+        transfer = 1.0
         # add speed based on player speed
-        self._vx = self._vx + player.get_dimention('s')*0.3*player.get_dimention('d')
+        self._vx = self._vx + player.get_dimention('s')*transfer*player.get_dimention('d')
 class Level:
     levels = [
         [
