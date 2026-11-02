@@ -59,7 +59,8 @@ class Ball:
         if self.check_under(): self.remove()
         if self.top_edge_collision(): self._vy = -self._vy
         if self.wall_edge_coll(): self._vx = -self._vx
-        if self.player_col(): self._vy = -self._vy
+        if self.player_col():
+            pass
         self.draw()
     def is_active(self):
         return self._active
