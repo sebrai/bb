@@ -9,6 +9,7 @@ player_start_height = floor(height*0.9)
 screen = pygame.display.set_mode((width,height))
 clock = pygame.time.Clock()
 running = True
+curr_level = 1 
 
 def check_circle_box_collision(circle_x:int, circle_y:int, radius:int, box_x:int, box_y:int, box_w:int, box_h:int):
     # Find the box edge coordinates
