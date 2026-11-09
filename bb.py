@@ -117,7 +117,7 @@ class Ball:
                 self._vx = -abs(self._vx)
             elif self._prev_x > px + pw:
                 self._vx = abs(self._vx)
-        transfer = 1.0
+            transfer = 1.0
         # add speed based on player speed
         self._vx = self._vx + player.get_dimention('s')*transfer*player.get_dimention('d')
     def block_coll(self):
@@ -197,7 +197,7 @@ levels = [
 ]
 
 class Player:
-    def __init__(self,w:int = 60,h:int = 20,speed:int = 10):
+    def __init__(self,w:int = 80,h:int = 20,speed:int = 10):
         self._width = w
         self._height = h
         self._x:int = floor(width/2)
@@ -229,7 +229,7 @@ class Player:
             case _:
                 return 0
 Ball(60,60,5,-5)
-Block(100,100,20,20)
+Block(100,100,30,20)
 player = Player()
 while running: # game loop
 
